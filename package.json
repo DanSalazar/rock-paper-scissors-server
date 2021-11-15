@@ -1,0 +1,22 @@
+{
+  "name": "rock-paper-scissors-server",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "start": "node index.js",
+    "dev": "nodemon index.js",
+    "f": "prettier --write ."
+  },
+  "author": "Daniel Salazar",
+  "license": "ISC",
+  "dependencies": {
+    "cors": "2.8.5",
+    "express": "4.17.1",
+    "socket.io": "^4.3.2"
+  },
+  "devDependencies": {
+    "nodemon": "2.0.15",
+    "prettier": "2.4.1"
+  }
+}
