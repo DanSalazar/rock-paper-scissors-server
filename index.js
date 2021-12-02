@@ -3,6 +3,7 @@ const server = require('http').createServer(app)
 require('dotenv').config()
 const { v4: uuid } = require('uuid')
 const { Server } = require('socket.io')
+const PORT = process.env.PORT || 3001
 
 const io = new Server(server, {
   cors: {
@@ -121,9 +122,7 @@ app.get('/rooms', (req, res) => {
   res.json({ rooms })
 })
 
-server.listen(3001, () => {
-  console.log('Server listening at:' + 3001)
-})
+server.listen(PORT)
 
 const roomExist = room => {
   return rooms.find(r => r.name === room)
