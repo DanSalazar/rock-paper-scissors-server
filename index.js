@@ -1,6 +1,5 @@
 const app = require('express')()
 const server = require('http').createServer(app)
-require('dotenv').config()
 const { v4: uuid } = require('uuid')
 const { Server } = require('socket.io')
 const PORT = process.env.PORT || 3001
