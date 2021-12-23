@@ -1,5 +1,6 @@
 const app = require('express')()
 const server = require('http').createServer(app)
+require('dotenv').config()
 const { v4: uuid } = require('uuid')
 const { Server } = require('socket.io')
 const PORT = process.env.PORT || 3001
@@ -74,7 +75,7 @@ io.on('connection', socket => {
       players: [exist.players[0], guest]
     }
 
-    updateRooms(roomEdit)
+    updateRooms(roomEdit, roomEdit.id)
     socket.join(room)
     socket.room = room
     socket.user = guest
@@ -86,34 +87,16 @@ io.on('connection', socket => {
     socket.to(socket.room).emit('op-selection', value)
   })
 
+  socket.on('new-match', () => {
+    socket.to(socket.room).emit('player-ready')
+  })
+
   socket.on('leave-room', () => {
-    let exist = roomExist(socket.room)
-
-    exist = {
-      ...exist,
-      players: exist.players.filter(player => player !== socket.user)
-    }
-
-    if (exist.players.length === 0) {
-      socket.leave(socket.room)
-      deleteRoom(socket.room)
-      return
-    }
-
-    updateRooms(exist)
-    socket.leave(socket.room)
-    io.to(socket.room).emit('player-leave')
-
-    socket.room = ''
-    socket.user = ''
+    handleDisconnect(io, socket)
   })
 
   socket.on('disconnect', () => {
-    deleteUserFromRoom(socket.room, socket.user)
-    io.to(socket.room).emit('player-leave')
-    socket.leave(socket.room)
-    socket.room = ''
-    socket.user = ''
+    handleDisconnect(io, socket)
   })
 })
 
@@ -139,13 +122,27 @@ const deleteUserFromRoom = (name, user) => {
       ...room,
       players: room.players.filter(player => player !== user)
     }
+
+    if (room.players.length === 0) {
+      deleteRoom(room.name)
+      return
+    }
+
     updateRooms(room, room.id)
   }
 }
 
 const updateRooms = (roomUpdate, id) => {
   rooms = rooms.map(room => {
-      if (room.id === roomUpdate.id) return roomUpdate
-      return room
-    })
+    if (room.id === id) return roomUpdate
+    return room
+  })
+}
+
+const handleDisconnect = (io, socket) => {
+  deleteUserFromRoom(socket.room, socket.user)
+  socket.leave(socket.room)
+  io.to(socket.room).emit('player-leave', socket.user)
+  socket.room = ''
+  socket.user = ''
 }
