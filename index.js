@@ -87,8 +87,8 @@ io.on('connection', socket => {
     socket.to(socket.room).emit('op-selection', value)
   })
 
-  socket.on('new-match', () => {
-    socket.to(socket.room).emit('player-ready')
+  socket.on('play-again', () => {
+    socket.to(socket.room).emit('play-again')
   })
 
   socket.on('leave-room', () => {
