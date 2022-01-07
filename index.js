@@ -23,17 +23,17 @@ io.on('connection', socket => {
     const exists = roomExist(room)
 
     if (exists) {
-      socket.emit('room-exist', { error: true, message: 'Room already exist' })
+      socket.emit('error-room', { error: true, message: 'Room already exist' })
       return
     }
 
     if (room.length < 3) {
-      socket.emit('room-too-short', { error: true, message: `Room name it's too short` })
+      socket.emit('error-room', { error: true, message: `Room name it's too short` })
       return
     }
 
     if (password.length < 3) {
-      socket.emit('password-too-short', { error: true, message: `Password given it's too short` })
+      socket.emit('error-room', { error: true, message: `Password given it's too short` })
       return
     }
 
@@ -56,17 +56,17 @@ io.on('connection', socket => {
     const exist = roomExist(room)
 
     if (!exist) {
-      socket.emit('room-not-exist', { error: true, message: 'Room not exist' })
+      socket.emit('error-room', { error: true, message: 'Room not exist' })
       return
     }
 
     if (exist.password !== password) {
-      socket.emit('incorrect-password', { error: true, message: 'Invalid password' })
+      socket.emit('error-room', { error: true, message: 'Invalid password' })
       return
     }
 
     if (exist.players.length >= 2) {
-      socket.emit('full-room', { error: true, message: 'Full room' })
+      socket.emit('error-room', { error: true, message: 'Full room' })
       return
     }
 
@@ -90,7 +90,7 @@ io.on('connection', socket => {
   socket.on('play-again', () => {
     socket.to(socket.room).emit('play-again')
   })
-
+  
   socket.on('leave-room', () => {
     handleDisconnect(io, socket)
   })
