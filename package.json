@@ -1,12 +1,12 @@
 {
-  "name": "rock-paper-scissors-server",
+  "name": "rpc-app-server",
   "version": "1.0.0",
   "description": "",
   "main": "index.js",
   "scripts": {
     "start": "node index.js",
     "dev": "nodemon index.js",
-    "pr": "prettier --write index.js"
+    "prettier": "prettier --write index.js"
   },
   "author": "Daniel Salazar",
   "license": "MIT",

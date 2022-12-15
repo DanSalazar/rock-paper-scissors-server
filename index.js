@@ -7,13 +7,9 @@ const PORT = process.env.PORT || 3001
 
 const io = new Server(server, {
   cors: {
-    origin: [process.env.APP_DOMAIN],
+    origin: [process.env.CLIENT_DOMAIN, process.env.CLIENT_DEVELOPMENT],
     methods: ['POST', 'GET']
   }
-})
-
-app.get('/', (req, res) => {
-  res.send('Hello')
 })
 
 let rooms = []
@@ -44,6 +40,7 @@ io.on('connection', socket => {
     let newRoom = {
       name: room,
       id: uuid(),
+      messages: [],
       players: [host],
       password
     }
@@ -53,38 +50,38 @@ io.on('connection', socket => {
   })
 
   socket.on('join-room', ({ room, guest, password }) => {
-    const exist = roomExist(room)
+    const currentRoom = roomExist(room)
 
-    if (!exist) {
+    if (!currentRoom) {
       socket.emit('error-room', { error: true, message: 'Room not exist' })
       return
     }
 
-    if (exist.password !== password) {
+    if (currentRoom.password !== password) {
       socket.emit('error-room', { error: true, message: 'Invalid password' })
       return
     }
 
-    if (exist.players.length >= 2) {
+    if (currentRoom.players.length >= 2) {
       socket.emit('error-room', { error: true, message: 'Full room' })
       return
     }
 
-    let roomEdit = {
-      ...exist,
-      players: [exist.players[0], guest]
-    }
+    currentRoom.players = [currentRoom.players[0], guest]
 
-    updateRooms(roomEdit, roomEdit.id)
     socket.join(room)
     socket.room = room
     socket.user = guest
     socket.to(room).emit('player-joined', guest)
-    socket.emit('joined', roomEdit)
+    socket.emit('joined', currentRoom)
   })
   
   socket.on('election', ({ value }) => {
     socket.to(socket.room).emit('op-selection', value)
+  })
+
+  socket.on('new-message', (message) => {
+    pushMessage(socket, message)
   })
 
   socket.on('play-again', () => {
@@ -98,10 +95,6 @@ io.on('connection', socket => {
   socket.on('disconnect', () => {
     handleDisconnect(io, socket)
   })
-})
-
-app.get('/rooms', (req, res) => {
-  res.json({ rooms })
 })
 
 server.listen(PORT)
@@ -118,10 +111,7 @@ const deleteUserFromRoom = (name, user) => {
   let room = roomExist(name)
 
   if (room) {
-    room = {
-      ...room,
-      players: room.players.filter(player => player !== user)
-    }
+    room.players = room.players.filter(player => player !== user)
 
     if (room.players.length === 0) {
       deleteRoom(room.name)
@@ -145,4 +135,11 @@ const handleDisconnect = (io, socket) => {
   io.to(socket.room).emit('player-leave', socket.user)
   socket.room = ''
   socket.user = ''
+}
+
+const pushMessage = (socket, message) => {
+  let room = roomExist(socket.room)
+  room.messages = room.messages.concat(message)
+
+  socket.to(socket.room).emit('new-message', message)
 }
